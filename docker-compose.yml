@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  elysia:
+    build: .
+    image: elysia:latest
+    container_name: elysia-app
+    ports:
+      - "8000:8000"
+    environment:
+      # Weaviate Configuration
+      - WCD_URL=${WCD_URL}
+      - WCD_API_KEY=${WCD_API_KEY}
+      
+      # LLM Configuration (choose one)
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      
+      # Optional: Model Configuration
+      - BASE_MODEL=${BASE_MODEL:-gpt-4o-mini}
+      - BASE_PROVIDER=${BASE_PROVIDER:-openai}
+      - COMPLEX_MODEL=${COMPLEX_MODEL:-gpt-4o}
+      - COMPLEX_PROVIDER=${COMPLEX_PROVIDER:-openai}
+      
+      # Optional: Logging
+      - LOGGING_LEVEL=${LOGGING_LEVEL:-INFO}
+    
+    volumes:
+      # Persist user configurations
+      - elysia-configs:/app/elysia/api/user_configs
+      # Optional: Mount local .env for development
+      # - ./.env:/app/.env:ro
+    
+    restart: unless-stopped
+    
+    networks:
+      - elysia-network
+    
+    # Resource limits (adjust as needed)
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
+
+volumes:
+  elysia-configs:
+    driver: local
+
+networks:
+  elysia-network:
+    driver: bridge
